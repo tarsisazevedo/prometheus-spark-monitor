@@ -1,0 +1,53 @@
+apply plugin: "scala"
+apply plugin: "java"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies{
+    compile "org.slf4j:slf4j-api:1.7.5"
+    compile "org.scala-lang:scala-library:2.12.1"
+    compile group: "io.prometheus", name: "simpleclient", version: "0.0.21"
+    compile group: "io.prometheus", name: "simpleclient_pushgateway", version: "0.0.21"
+    compile("org.apache.spark:spark-core_2.11:2.0.0") {
+      exclude group: "org.apache.hadoop"
+    }
+    compile "org.apache.spark:spark-sql_2.11:2.0.0"
+    compile group: "org.apache.spark", name: "spark-streaming_2.11", version: "2.0.0"
+    testCompile "junit:junit:4.12"
+    compile "junit:junit:4.12"
+    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.0.RC3'
+}
+
+test {
+    testLogging {
+        // Show that tests are run in the command-line output
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+        showExceptions true
+        exceptionFormat "full"
+        showCauses true
+        showStackTraces true
+
+        // set options for log level DEBUG and INFO
+        debug {
+            events "started", "passed", "skipped", "failed", "standardOut", "standardError"
+            exceptionFormat "full"
+        }
+        info.events = debug.events
+        info.exceptionFormat = debug.exceptionFormat
+
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+                def startItem = '|  ', endItem = '  |'
+                def repeatLength = startItem.length() + output.length() + endItem.length()
+                println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+            }
+        }
+    }
+}
+
+sourceSets.main.scala.srcDirs = ["."]
+targetCompatibility = "1.8"
+sourceCompatibility = "1.8"
